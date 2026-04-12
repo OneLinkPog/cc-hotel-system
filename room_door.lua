@@ -3,6 +3,7 @@ rednet.open("top")
 
 -- CHANGE THIS PER ROOM
 local ROOM_ID = 1
+local redstoneSide = "top"
 
 -- Find player detector
 local detector = peripheral.find("playerDetector")
@@ -66,7 +67,7 @@ local function doorLoop()
             end
         end
 
-        redstone.setOutput("front", open)
+        redstone.setOutput(redstoneSide, open)
         sleep(0.5)
     end
 end
