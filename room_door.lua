@@ -56,7 +56,7 @@ local function doorLoop()
         if now < forceOpenUntil then
             open = true
         else
-            local players = detector.getPlayersInRange(3)
+            local players = detector.getPlayersInRange(2)
 
             for _, p in ipairs(players) do
                 if isAllowed(p) then
