@@ -2,6 +2,7 @@
 rednet.open("top")
 
 local dataFile = "hotel_data"
+local roomCap = 10 -- Default number of rooms
 
 -- LOAD / SAVE
 local function loadData()
@@ -23,7 +24,7 @@ end
 local hotel = loadData()
 
 -- Ensure rooms exist
-for i = 1, 10 do
+for i = 1, roomCap do
     hotel.rooms[i] = hotel.rooms[i] or {guests = {}}
 end
 
