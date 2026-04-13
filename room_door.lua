@@ -1,11 +1,9 @@
--- Open modem
 rednet.open("top")
 
--- CHANGE THIS PER ROOM
-local ROOM_ID = 1
+local ROOM_ID = 1 -- CHANGE PER ROOM
+local SAVE_FILE = "room_" .. ROOM_ID .. "_data"
 local redstoneSide = "top"
 
--- Find player detector
 local detector = peripheral.find("playerDetector")
 if not detector then
     error("Player detector not found!")
@@ -14,7 +12,28 @@ end
 local allowed = {}
 local forceOpenUntil = 0
 
--- CHECK IF PLAYER ALLOWED
+-- LOAD DATA
+local function loadData()
+    if fs.exists(SAVE_FILE) then
+        local f = fs.open(SAVE_FILE, "r")
+        local data = textutils.unserialize(f.readAll())
+        f.close()
+        return data or {}
+    end
+    return {}
+end
+
+-- SAVE DATA
+local function saveData()
+    local f = fs.open(SAVE_FILE, "w")
+    f.write(textutils.serialize(allowed))
+    f.close()
+end
+
+-- Initialize from disk
+allowed = loadData()
+
+-- CHECK ACCESS
 local function isAllowed(player)
     for _, name in ipairs(allowed) do
         if name == player then
@@ -24,7 +43,7 @@ local function isAllowed(player)
     return false
 end
 
--- LISTEN FOR SERVER UPDATES
+-- LISTEN FOR SERVER
 local function listen()
     while true do
         local id, msg = rednet.receive()
@@ -34,9 +53,10 @@ local function listen()
             -- Update guest list
             if msg.type == "update_room" and msg.room == ROOM_ID then
                 allowed = msg.guests or {}
-                print("Guest list updated")
+                saveData()
+                print("Guest list updated & saved")
 
-            -- Force open command
+            -- Force open
             elseif msg.type == "force_open" and msg.room == ROOM_ID then
                 forceOpenUntil = os.clock() + (msg.duration or 20)
                 print("REMOTE UNLOCK ACTIVE")
@@ -46,13 +66,12 @@ local function listen()
     end
 end
 
--- DOOR CONTROL LOOP
+-- DOOR LOOP
 local function doorLoop()
     while true do
         local now = os.clock()
         local open = false
 
-        -- Force override
         if now < forceOpenUntil then
             open = true
         else
@@ -72,6 +91,6 @@ local function doorLoop()
     end
 end
 
-print("Room " .. ROOM_ID .. " door system online")
+print("Room " .. ROOM_ID .. " door system online (persistent)")
 
 parallel.waitForAny(listen, doorLoop)
